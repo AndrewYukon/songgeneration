@@ -1,7 +1,7 @@
 # ---------------------------------------------------
-# Base image: NVIDIA CUDA 12.4.0, Ubuntu 22.04
+# Base image: NVIDIA CUDA 12.4.1, Ubuntu 22.04
 # ---------------------------------------------------
-    FROM nvidia/cuda:12.4.0-cudnn8-devel-ubuntu22.04
+    FROM nvidia/cuda:12.4.1-cudnn-devel-ubuntu22.04
 
     # ---------------------------------------------------
     # Install Python 3.10 + dev tools
