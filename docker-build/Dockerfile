@@ -46,7 +46,7 @@
     # ---------------------------------------------------
     # Clone your repo
     # ---------------------------------------------------
-    RUN git clone https://github.com/AndrewYukon/songgeneration /repo
+    RUN git clone https://github.com/AndrewYukon/songgeneration /repo/songgeneration
     
     # ---------------------------------------------------
     # Set workdir
