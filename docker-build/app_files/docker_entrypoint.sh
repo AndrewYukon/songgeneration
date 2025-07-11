@@ -2,17 +2,60 @@
 
 echo "✅ Running docker_entrypoint.sh ..."
 
-# 创建目录
+# ---------------------------------------------------
+# Set environment variables
+# ---------------------------------------------------
+
+export USER=root
+export PYTHONDONTWRITEBYTECODE=1
+export TRANSFORMERS_CACHE="$(pwd)/third_party/hub"
+export NCCL_HOME=/usr/local/tccl
+export PYTHONPATH="$(pwd)/codeclm/tokenizer/:$(pwd):$(pwd)/codeclm/tokenizer/Flow1dVAE/:$(pwd)/codeclm/tokenizer/:$PYTHONPATH"
+
+echo "✅ Environment variables set."
+
+# ---------------------------------------------------
+# Create required directories
+# ---------------------------------------------------
+
 mkdir -p /workspace/SongGeneration/jsonl
 mkdir -p /workspace/SongGeneration/output
 
-# 建立软链接
+# ---------------------------------------------------
+# Create symlinks
+# ---------------------------------------------------
+
 ln -sf /workspace/SongGeneration/ckpt /repo/songgeneration/ckpt
 ln -sf /workspace/SongGeneration/third_party /repo/songgeneration/third_party
 ln -sf /workspace/SongGeneration/jsonl /repo/songgeneration/jsonl
 ln -sf /workspace/SongGeneration/output /repo/songgeneration/output
 
-echo "✅ docker_entrypoint.sh completed."
+echo "✅ Directories and symlinks prepared."
 
-# 保留 bash，进入交互
+# ---------------------------------------------------
+# Handle optional arguments
+# ---------------------------------------------------
+
+CKPT_PATH=$1
+JSONL=$2
+SAVE_DIR=$3
+
+echo ""
+echo "------------------------------------------------------------"
+echo "✨ Docker container is ready!"
+echo ""
+echo "✅ Environment:"
+echo "  CKPT_PATH = ${CKPT_PATH}"
+echo "  JSONL     = ${JSONL}"
+echo "  SAVE_DIR  = ${SAVE_DIR}"
+echo ""
+echo "👉 To generate songs, run the following command:"
+echo ""
+echo "python3 generate.py \$CKPT_PATH \$JSONL \$SAVE_DIR"
+echo ""
+echo "Example:"
+echo "python3 generate.py /workspace/SongGeneration/ckpt /workspace/SongGeneration/jsonl /workspace/SongGeneration/output"
+echo "------------------------------------------------------------"
+
+# Start an interactive shell
 exec /bin/bash
