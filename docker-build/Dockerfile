@@ -68,7 +68,7 @@
     # ---------------------------------------------------
     # Copy docker entrypoint script
     # ---------------------------------------------------
-    COPY app_files/docker_entrypoint.sh /repo/songgeneration/docker_entrypoint.sh
+    COPY ./app_files/docker_entrypoint.sh /repo/songgeneration/docker_entrypoint.sh
     
     RUN chmod +x /repo/songgeneration/docker_entrypoint.sh
     
