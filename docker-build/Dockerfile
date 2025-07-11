@@ -69,7 +69,7 @@
     # Copy docker entrypoint script
     # ---------------------------------------------------
     RUN mkdir -p /repo/songgeneration/app
-    COPY app_files/* /repo/songgeneration/app
+    COPY app_files/ /repo/songgeneration/app/
     
     RUN chmod +x /repo/songgeneration/app/docker_entrypoint.sh
     
