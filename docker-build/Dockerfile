@@ -41,28 +41,22 @@
     # ---------------------------------------------------
     # Create workspace dirs
     # ---------------------------------------------------
-    RUN mkdir -p /workspace/repo
-    RUN mkdir -p /workspace/SongGeneration/jsonl
-    RUN mkdir -p /workspace/SongGeneration/output
+    RUN mkdir -p /repo
     
     # ---------------------------------------------------
     # Clone your repo
     # ---------------------------------------------------
-    RUN git clone https://github.com/AndrewYukon/songgeneration /workspace/repo/songgeneration
+    RUN git clone https://github.com/AndrewYukon/songgeneration /repo
     
     # ---------------------------------------------------
     # Set workdir
     # ---------------------------------------------------
-    WORKDIR /workspace/repo/songgeneration
+    WORKDIR /repo/songgeneration
     
     # ---------------------------------------------------
     # Install your Python dependencies
     # ---------------------------------------------------
-    
-    # Install requirements.txt
     RUN python3 -m pip install --no-cache-dir -r requirements.txt
-    
-    # Install requirements_nodeps.txt without deps
     RUN python3 -m pip install --no-cache-dir -r requirements_nodeps.txt --no-deps
     
     # ---------------------------------------------------
@@ -72,12 +66,13 @@
         https://github.com/Dao-AILab/flash-attention/releases/download/v2.7.4.post1/flash_attn-2.7.4.post1+cu12torch2.6cxx11abiFALSE-cp310-cp310-linux_x86_64.whl
     
     # ---------------------------------------------------
-    # Link ckpt and third_party into repo root
+    # Copy docker entrypoint script
     # ---------------------------------------------------
-    RUN ln -s /workspace/SongGeneration/ckpt /workspace/repo/songgeneration/ckpt && \
-        ln -s /workspace/SongGeneration/third_party /workspace/repo/songgeneration/third_party
+    COPY app_files/docker_entrypoint.sh /repo/songgeneration/docker_entrypoint.sh
+    
+    RUN chmod +x /repo/songgeneration/docker_entrypoint.sh
     
     # ---------------------------------------------------
     # Default shell
     # ---------------------------------------------------
-    CMD ["/bin/bash"]
+    CMD ["/repo/songgeneration/docker_entrypoint.sh"]
