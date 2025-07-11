@@ -68,11 +68,12 @@
     # ---------------------------------------------------
     # Copy docker entrypoint script
     # ---------------------------------------------------
-    COPY ./app_files/docker_entrypoint.sh /repo/songgeneration/docker_entrypoint.sh
+    RUN mkdir -p /repo/songgeneration/app
+    COPY app_files/* /repo/songgeneration/app
     
-    RUN chmod +x /repo/songgeneration/docker_entrypoint.sh
+    RUN chmod +x /repo/songgeneration/app/docker_entrypoint.sh
     
     # ---------------------------------------------------
     # Default shell
     # ---------------------------------------------------
-    CMD ["/repo/songgeneration/docker_entrypoint.sh"]
+    CMD ["/repo/songgeneration/app/docker_entrypoint.sh"]
