@@ -54,7 +54,7 @@ echo ""
 echo "python3 generate.py \$CKPT_PATH \$JSONL \$SAVE_DIR"
 echo ""
 echo "Example:"
-echo "python3 generate.py /workspace/SongGeneration/ckpt /workspace/SongGeneration/jsonl /workspace/SongGeneration/output"
+echo "python3 generate.py /workspace/SongGeneration/ckpt /workspace/SongGeneration/jsonl/test.jsonl /workspace/SongGeneration/output"
 echo "------------------------------------------------------------"
 
 # Start an interactive shell
