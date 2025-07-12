@@ -123,10 +123,10 @@ def main():
 
     # Prepare output folders
     #os.makedirs(args.save_dir, exist_ok=True)
-    if not os.path.exists(save_dir):
-        os.makedirs(save_dir)
-    elif not os.path.isdir(save_dir):
-        raise RuntimeError(f"Path exists but is not a directory: {save_dir}")
+    if not os.path.exists(args.save_dir):
+        os.makedirs(args.save_dir)
+    elif not os.path.isdir(args.save_dir):
+        raise RuntimeError(f"Path exists but is not a directory: {args.save_dir}")
 
     os.makedirs(os.path.join(args.save_dir, "audios"), exist_ok=True)
     os.makedirs(os.path.join(args.save_dir, "jsonl"), exist_ok=True)

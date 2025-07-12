@@ -99,6 +99,12 @@ if __name__ == "__main__":
 
     model.set_generation_params(duration=max_duration, extend_stride=5, temperature=temp, cfg_coef=cfg_coef,
                                 top_k=top_k, top_p=top_p, record_tokens=record_tokens, record_window=record_window)
+    
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir)
+    elif not os.path.isdir(save_dir):
+        raise RuntimeError(f"Path exists but is not a directory: {save_dir}")
+        
     os.makedirs(save_dir, exist_ok=True)
     os.makedirs(save_dir + "/audios", exist_ok=True)
     os.makedirs(save_dir + "/jsonl", exist_ok=True)
