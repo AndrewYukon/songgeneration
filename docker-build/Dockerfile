@@ -75,5 +75,7 @@
     
     # ---------------------------------------------------
     # Default shell
+    # CMD ["/repo/songgeneration/app/docker_entrypoint.sh"]
     # ---------------------------------------------------
+    
     CMD ["/repo/songgeneration/app/docker_entrypoint.sh"]

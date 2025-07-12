@@ -58,4 +58,8 @@ echo "python3 generate.py /workspace/SongGeneration/ckpt /workspace/SongGenerati
 echo "------------------------------------------------------------"
 
 # Start an interactive shell
-exec /bin/bash
+# exec /bin/bash
+
+# keep container running
+echo "✅ docker_entrypoint.sh finished, keeping container alive."
+exec tail -f /dev/null
