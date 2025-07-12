@@ -3,9 +3,14 @@
 # ----------------------------------------
 # s3_browser.sh
 #
-# S3交互式多层浏览 + 下载 + 上传脚本
+# Interactive S3 browser:
+# - Navigate folders
+# - Download individual files
+# - Upload one or more files
 #
-# 用法：
+# For S3-compatible services (e.g. RunPod)
+#
+# Usage:
 #   ./s3_browser.sh
 #
 # ----------------------------------------
@@ -17,7 +22,7 @@ BUCKET="udn0m9qkz8"
 PREFIX=""
 DOWNLOAD_DIR="./output_files"
 
-# 配置 path-style
+# Force path-style addressing
 aws configure set default.s3.addressing_style path >/dev/null
 
 mkdir -p "$DOWNLOAD_DIR"
@@ -27,12 +32,11 @@ function list_and_choose() {
 
     while true; do
         echo
-        echo "⭐ 当前路径：s3://$BUCKET/$current_prefix"
+        echo "⭐ Current path: s3://$BUCKET/$current_prefix"
         echo "------------------------------------------"
 
         rm -f s3api_result.json
 
-        # 列出当前目录
         aws s3api list-objects-v2 \
             --bucket "$BUCKET" \
             --prefix "$current_prefix" \
@@ -41,7 +45,6 @@ function list_and_choose() {
             --region "$REGION" \
             > s3api_result.json
 
-        # 修正 jq null 报错
         folders=$(jq -r '.CommonPrefixes? // [] | .[].Prefix' s3api_result.json)
         files=$(jq -r '.Contents? // [] | .[].Key' s3api_result.json)
 
@@ -63,43 +66,43 @@ function list_and_choose() {
             done <<< "$files"
         fi
 
-        OPTIONS+=("返回上层")
-        OPTIONS+=("上传文件到此目录")
-        OPTIONS+=("退出")
+        OPTIONS+=("Go back to parent folder")
+        OPTIONS+=("Upload file(s) to this folder")
+        OPTIONS+=("Exit")
 
         if [ ${#OPTIONS[@]} -eq 3 ]; then
-            echo "⚠️ 该目录为空。"
+            echo "⚠️ This folder is empty."
         fi
 
         for i in "${!OPTIONS[@]}"; do
             printf "%3d) %s\n" $((i+1)) "${OPTIONS[$i]}"
         done
 
-        read -rp "请输入序号选择: " choice
+        read -rp "Enter the number of your choice: " choice
 
         if ! [[ "$choice" =~ ^[0-9]+$ ]]; then
-            echo "❌ 非法输入，必须输入数字。"
+            echo "❌ Invalid input. Please enter a number."
             continue
         fi
 
         idx=$((choice-1))
 
         if [ $idx -lt 0 ] || [ $idx -ge ${#OPTIONS[@]} ]; then
-            echo "❌ 输入超出范围。"
+            echo "❌ Input out of range."
             continue
         fi
 
         selection="${OPTIONS[$idx]}"
 
         case "$selection" in
-            "返回上层")
+            "Go back to parent folder")
                 return 0
                 ;;
-            "上传文件到此目录")
+            "Upload file(s) to this folder")
                 upload_file "$current_prefix"
                 ;;
-            "退出")
-                echo "✅ 再见！"
+            "Exit")
+                echo "✅ Goodbye!"
                 exit 0
                 ;;
             *)
@@ -121,7 +124,7 @@ function download_file() {
     local filename=$(basename "$key")
 
     echo
-    echo "🚀 开始下载 s3://$BUCKET/$key → $DOWNLOAD_DIR/$filename"
+    echo "🚀 Downloading s3://$BUCKET/$key → $DOWNLOAD_DIR/$filename"
     aws s3 cp \
         "s3://$BUCKET/$key" \
         "$DOWNLOAD_DIR/$filename" \
@@ -129,9 +132,9 @@ function download_file() {
         --region "$REGION"
 
     if [ $? -eq 0 ]; then
-        echo "✅ 下载完成：$DOWNLOAD_DIR/$filename"
+        echo "✅ Download complete: $DOWNLOAD_DIR/$filename"
     else
-        echo "❌ 下载失败。"
+        echo "❌ Download failed."
     fi
 }
 
@@ -139,82 +142,82 @@ function upload_file() {
     local target_prefix="$1"
 
     echo
-    read -rp "请输入本地文件路径（例如 /path/to/file.txt）: " local_file
+    read -rp "Enter local file paths (separated by spaces): " local_files
 
-    if [ ! -f "$local_file" ]; then
-        echo "❌ 文件不存在: $local_file"
-        return
-    fi
-
-    file_name=$(basename "$local_file")
-    s3_key="${target_prefix}${file_name}"
-
-    # 检查 S3 是否已存在此文件
-    echo "正在检查是否存在 s3://$BUCKET/$s3_key ..."
-    aws s3api head-object \
-        --bucket "$BUCKET" \
-        --key "$s3_key" \
-        --endpoint-url "$ENDPOINT_URL" \
-        --region "$REGION" > head_object.json 2>/dev/null
-
-    if [ $? -eq 0 ]; then
-        # 文件已存在
-        existing_size=$(jq -r '.ContentLength' head_object.json)
-        echo "⚠️ 目标 S3 中已存在同名文件：s3://$BUCKET/$s3_key"
-        echo "大小：$existing_size bytes"
-
-        read -rp "是否覆盖？(y/n) " confirm
-        if [[ "$confirm" != "y" ]]; then
-            echo "🚫 跳过上传：$local_file"
-            rm -f head_object.json
-            return
-        else
-            echo "✅ 将覆盖原文件。"
+    for local_file in $local_files; do
+        if [ ! -f "$local_file" ]; then
+            echo "❌ File does not exist: $local_file"
+            continue
         fi
-    else
-        echo "✅ 目标 S3 中不存在同名文件。"
-    fi
 
-    rm -f head_object.json
+        file_name=$(basename "$local_file")
+        s3_key="${target_prefix}${file_name}"
 
-    echo
-    echo "🚀 开始上传 $local_file → s3://$BUCKET/$s3_key"
-    aws s3 cp \
-        "$local_file" \
-        "s3://$BUCKET/$s3_key" \
-        --endpoint-url "$ENDPOINT_URL" \
-        --region "$REGION"
-
-    if [ $? -eq 0 ]; then
-        echo "✅ 上传成功：s3://$BUCKET/$s3_key"
-
-        # 验证文件大小
-        local_size=$(stat -c %s "$local_file" 2>/dev/null || stat -f %z "$local_file")
-
+        # Check if file exists on S3
+        echo "Checking if s3://$BUCKET/$s3_key exists..."
         aws s3api head-object \
             --bucket "$BUCKET" \
             --key "$s3_key" \
             --endpoint-url "$ENDPOINT_URL" \
-            --region "$REGION" > head_object.json
+            --region "$REGION" > head_object.json 2>/dev/null
 
-        s3_size=$(jq -r '.ContentLength' head_object.json)
+        if [ $? -eq 0 ]; then
+            existing_size=$(jq -r '.ContentLength' head_object.json)
+            echo "⚠️ File already exists on S3: s3://$BUCKET/$s3_key"
+            echo "Size on S3: $existing_size bytes"
 
-        if [ "$local_size" == "$s3_size" ]; then
-            echo "✅ 文件大小一致：$local_size bytes"
+            read -rp "Do you want to overwrite it? (y/n) " confirm
+            if [[ "$confirm" != "y" ]]; then
+                echo "🚫 Skipped upload: $local_file"
+                rm -f head_object.json
+                continue
+            else
+                echo "✅ Will overwrite the existing file."
+            fi
         else
-            echo "⚠️ 文件大小不一致！"
-            echo "本地：$local_size bytes"
-            echo "S3  ：$s3_size bytes"
+            echo "✅ No existing file on S3."
         fi
 
-        echo
-        echo "===== 当前目录最新内容 ====="
-        list_current_folder "$target_prefix"
-    else
-        echo "❌ 上传失败。"
-    fi
+        rm -f head_object.json
 
-    rm -f head_object.json
+        echo
+        echo "🚀 Uploading $local_file → s3://$BUCKET/$s3_key"
+        aws s3 cp \
+            "$local_file" \
+            "s3://$BUCKET/$s3_key" \
+            --endpoint-url "$ENDPOINT_URL" \
+            --region "$REGION"
+
+        if [ $? -eq 0 ]; then
+            echo "✅ Upload succeeded: s3://$BUCKET/$s3_key"
+
+            local_size=$(stat -c %s "$local_file" 2>/dev/null || stat -f %z "$local_file")
+
+            aws s3api head-object \
+                --bucket "$BUCKET" \
+                --key "$s3_key" \
+                --endpoint-url "$ENDPOINT_URL" \
+                --region "$REGION" > head_object.json
+
+            s3_size=$(jq -r '.ContentLength' head_object.json)
+
+            if [ "$local_size" == "$s3_size" ]; then
+                echo "✅ File size verified: $local_size bytes"
+            else
+                echo "⚠️ Size mismatch!"
+                echo "Local : $local_size bytes"
+                echo "S3    : $s3_size bytes"
+            fi
+        else
+            echo "❌ Upload failed: $local_file"
+        fi
+
+        rm -f head_object.json
+        echo
+    done
+
+    echo "===== Current folder contents ====="
+    list_current_folder "$target_prefix"
 }
 
 function list_current_folder() {
@@ -232,7 +235,7 @@ function list_current_folder() {
     files=$(jq -r '.Contents? // [] | .[].Key' s3api_result.json)
 
     if [[ -z "$folders" && -z "$files" ]]; then
-        echo "(该目录为空)"
+        echo "(This folder is empty)"
         return
     fi
 
@@ -249,5 +252,5 @@ function list_current_folder() {
     done
 }
 
-# 从 bucket 根目录开始
+# Start browsing from the root of the bucket
 list_and_choose "$PREFIX"
