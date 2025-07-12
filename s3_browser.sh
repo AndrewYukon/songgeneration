@@ -3,8 +3,7 @@
 # ----------------------------------------
 # s3_browser.sh
 #
-# 列出 S3 bucket 所有文件夹/文件
-# 并可选择下载单个文件到 output_files 目录
+# S3交互式多层浏览 + 下载脚本
 #
 # 用法：
 #   ./s3_browser.sh
@@ -15,81 +14,126 @@
 ENDPOINT_URL="https://s3api-us-ks-2.runpod.io"
 REGION="US-KS-2"
 BUCKET="udn0m9qkz8"
-PREFIX=""            # 从 bucket 根目录开始
-TMP_LIST="s3_list.tmp"
+PREFIX=""
+DOWNLOAD_DIR="./output_files"
 
 # 配置 path-style
 aws configure set default.s3.addressing_style path >/dev/null
 
-# 清理临时文件
-rm -f $TMP_LIST
-
-# 创建下载目录
-DOWNLOAD_DIR="./output_files"
 mkdir -p "$DOWNLOAD_DIR"
 
-# 递归遍历 S3
-function list_s3_recursive() {
-    local prefix="$1"
+function list_and_choose() {
+    local current_prefix="$1"
 
-    aws s3api list-objects-v2 \
-        --bucket "$BUCKET" \
-        --prefix "$prefix" \
-        --delimiter "/" \
-        --endpoint-url "$ENDPOINT_URL" \
-        --region "$REGION" \
-        > s3api_result.json
+    while true; do
+        echo
+        echo "⭐ 当前路径：s3://$BUCKET/$current_prefix"
+        echo "------------------------------------------"
 
-    # 列出文件夹 (CommonPrefixes)
-    folders=$(jq -r '.CommonPrefixes[].Prefix // empty' s3api_result.json)
-    for folder in $folders; do
-        echo "[DIR] $folder" | tee -a $TMP_LIST
-        list_s3_recursive "$folder"
-    done
+        # 清理旧列表
+        rm -f s3api_result.json
 
-    # 列出文件 (Contents)
-    files=$(jq -r '.Contents[].Key // empty' s3api_result.json)
-    for file in $files; do
-        if [[ "$file" != */ ]]; then
-            echo "$file" | tee -a $TMP_LIST
+        # 列出当前目录
+        aws s3api list-objects-v2 \
+            --bucket "$BUCKET" \
+            --prefix "$current_prefix" \
+            --delimiter "/" \
+            --endpoint-url "$ENDPOINT_URL" \
+            --region "$REGION" \
+            > s3api_result.json
+
+        # 处理 folders
+        folders=$(jq -r '.CommonPrefixes[].Prefix // empty' s3api_result.json)
+        files=$(jq -r '.Contents[].Key // empty' s3api_result.json)
+
+        OPTIONS=()
+
+        if [[ -n "$folders" ]]; then
+            while IFS= read -r folder; do
+                # 去掉前缀部分，只显示相对路径
+                display_name=${folder#"$current_prefix"}
+                OPTIONS+=("[DIR] $display_name")
+            done <<< "$folders"
+        fi
+
+        if [[ -n "$files" ]]; then
+            while IFS= read -r file; do
+                if [[ "$file" != */ ]]; then
+                    display_name=${file#"$current_prefix"}
+                    OPTIONS+=("$display_name")
+                fi
+            done <<< "$files"
+        fi
+
+        # 添加退出选项
+        OPTIONS+=("退出")
+
+        # 如果空
+        if [ ${#OPTIONS[@]} -eq 1 ]; then
+            echo "⚠️ 该目录为空。"
+            echo
+            read -rp "输入 b 返回上层，或 q 退出: " input
+            if [[ "$input" == "b" ]]; then
+                return 0
+            else
+                echo "✅ 再见！"
+                exit 0
+            fi
+        fi
+
+        # 显示菜单
+        for i in "${!OPTIONS[@]}"; do
+            printf "%3d) %s\n" $((i+1)) "${OPTIONS[$i]}"
+        done
+
+        read -rp "请输入序号选择: " choice
+
+        if ! [[ "$choice" =~ ^[0-9]+$ ]]; then
+            echo "❌ 非法输入，必须输入数字。"
+            continue
+        fi
+
+        idx=$((choice-1))
+
+        if [ $idx -lt 0 ] || [ $idx -ge ${#OPTIONS[@]} ]; then
+            echo "❌ 输入超出范围。"
+            continue
+        fi
+
+        selection="${OPTIONS[$idx]}"
+
+        if [[ "$selection" == "退出" ]]; then
+            echo "✅ 再见！"
+            exit 0
+        elif [[ "$selection" == "[DIR]"* ]]; then
+            dir_name=$(echo "$selection" | sed 's/^\[DIR\] //')
+            new_prefix="$current_prefix$dir_name"
+            list_and_choose "$new_prefix"
+        else
+            file_key="$current_prefix$selection"
+            download_file "$file_key"
         fi
     done
 }
 
-# 开始遍历
-echo "====== 正在列出 S3 bucket 所有文件 ======"
-list_s3_recursive "$PREFIX"
+function download_file() {
+    local key="$1"
+    local filename=$(basename "$key")
 
-echo
-echo "以下是所有可下载的文件列表："
-cat $TMP_LIST
+    echo
+    echo "🚀 开始下载 s3://$BUCKET/$key → $DOWNLOAD_DIR/$filename"
+    aws s3 cp \
+        "s3://$BUCKET/$key" \
+        "$DOWNLOAD_DIR/$filename" \
+        --endpoint-url "$ENDPOINT_URL" \
+        --region "$REGION"
 
-echo
-echo "请输入要下载的文件完整 Key（比如 SongGeneration/output/audios/sample_01_autoprompt.flac）"
-read -rp "Key: " FILE_KEY
+    if [ $? -eq 0 ]; then
+        echo "✅ 下载完成：$DOWNLOAD_DIR/$filename"
+    else
+        echo "❌ 下载失败。"
+    fi
+}
 
-if [ -z "$FILE_KEY" ]; then
-    echo "❌ 未输入 Key，退出。"
-    exit 1
-fi
-
-LOCAL_NAME=$(basename "$FILE_KEY")
-LOCAL_PATH="$DOWNLOAD_DIR/$LOCAL_NAME"
-
-echo
-echo "开始下载：$FILE_KEY → $LOCAL_PATH"
-
-aws s3 cp \
-    "s3://$BUCKET/$FILE_KEY" \
-    "$LOCAL_PATH" \
-    --endpoint-url "$ENDPOINT_URL" \
-    --region "$REGION"
-
-if [ $? -eq 0 ]; then
-    echo "✅ 下载成功：$LOCAL_PATH"
-else
-    echo "❌ 下载失败"
-fi
-
-# 清理
-rm -f s3api_result.json $TMP_LIST
+# 从 bucket 根目录开始
+list_and_choose "$PREFIX"
