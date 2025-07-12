@@ -8,11 +8,20 @@ echo "✅ Running docker_entrypoint.sh ..."
 
 export USER=root
 export PYTHONDONTWRITEBYTECODE=1
-export TRANSFORMERS_CACHE="$(pwd)/third_party/hub"
+#export TRANSFORMERS_CACHE="$(pwd)/third_party/hub"
+export HF_HOME=/workspace/SongGeneration/
 export NCCL_HOME=/usr/local/tccl
-export PYTHONPATH="$(pwd)/codeclm/tokenizer/:$(pwd):$(pwd)/codeclm/tokenizer/Flow1dVAE/:$(pwd)/codeclm/tokenizer/:$PYTHONPATH"
+export NCCL_HOME="$(pwd)/codeclm/tokenizer/:$(pwd):$(pwd)/codeclm/tokenizer/Flow1dVAE/:$(pwd)/codeclm/tokenizer/:$PYTHONPATH"
 
 echo "✅ Environment variables set."
+echo ""
+echo "✅ Environment:"
+echo "  USER = ${USER}"
+echo "  PYTHONDONTWRITEBYTECODE = ${PYTHONDONTWRITEBYTECODE}"
+echo "  HF_HOME  = ${HF_HOME}"
+echo "  NCCL_HOME  = ${NCCL_HOME}"
+echo "  NCCL_HOME  = ${NCCL_HOME}"
+echo ""
 
 # ---------------------------------------------------
 # Create required directories
