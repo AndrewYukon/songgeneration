@@ -43,8 +43,8 @@ function list_and_choose() {
             > s3api_result.json
 
         # 处理 folders
-        folders=$(jq -r '.CommonPrefixes[].Prefix // empty' s3api_result.json)
-        files=$(jq -r '.Contents[].Key // empty' s3api_result.json)
+        folders=$(jq -r '.CommonPrefixes? // [] | .[].Prefix' s3api_result.json)
+        files=$(jq -r '.Contents? // [] | .[].Key' s3api_result.json)
 
         OPTIONS=()
 
