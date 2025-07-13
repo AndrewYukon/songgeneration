@@ -88,5 +88,12 @@
     # Default working directory
     WORKDIR /workspace
     
+    # Add these lines in your runtime stage
+    RUN echo 'USER=root' >> /etc/environment && \
+        echo 'PYTHONDONTWRITEBYTECODE=1' >> /etc/environment && \
+        echo 'HF_HOME=/workspace/SongGeneration/' >> /etc/environment && \
+        echo 'NCCL_HOME=/usr/local/tccl' >> /etc/environment && \
+        echo 'PYTHONPATH=/workspace/repo/songgeneration/codeclm/tokenizer/:/workspace/repo/songgeneration:/workspace/repo/songgeneration/codeclm/tokenizer/Flow1dVAE/:/workspace/repo/songgeneration/codeclm/tokenizer/' >> /etc/environment
+
     # Default command
     CMD ["/docker_entrypoint.sh"]
