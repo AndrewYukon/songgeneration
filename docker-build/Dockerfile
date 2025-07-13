@@ -59,13 +59,14 @@
     # ---------------------------------------------------
     FROM nvidia/cuda:12.4.1-cudnn-runtime-ubuntu22.04 AS runtime
     
-    # Install Python + runtime libraries
+    # Install Python + runtime libraries + git
     RUN apt-get update && \
         apt-get install -y \
             python3.10 \
             python3.10-venv \
             python3.10-dev \
             python3-pip \
+            git \
             libsndfile1 \
             ffmpeg \
             libsox-dev && \
@@ -79,7 +80,7 @@
     
     # Copy Python dist-packages from builder
     COPY --from=builder /usr/local/lib/python3.10/dist-packages /usr/local/lib/python3.10/dist-packages
-
+    
     # Copy entrypoint script into container
     COPY app_files/docker_entrypoint.sh /docker_entrypoint.sh
     RUN chmod +x /docker_entrypoint.sh
