@@ -4,7 +4,7 @@
 # 参数定义
 # --------------------------------------------
 
-IMAGE_NAME="linysh/songmix:pytorch2.6.0-py3.10-cuda12.4.1-runtime-ubuntu22.04-v1.4.1"
+IMAGE_NAME="linysh/songmix:pytorch2.6.0-py3.10-cuda12.4.1-runtime-ubuntu22.04-v1.4.5"
 LOG_FILE="./build_and_push.log"
 
 # --------------------------------------------
@@ -16,7 +16,7 @@ LOG_FILE="./build_and_push.log"
     echo "🚀 [$(date '+%Y-%m-%d %H:%M:%S')] Start building Docker image: $IMAGE_NAME"
     echo "----------------------------------------"
 
-    docker build --no-cache -t "$IMAGE_NAME" .
+    docker build --no-cache -t "$IMAGE_NAME" ./docker-build
 
     if [ $? -eq 0 ]; then
         echo "✅ [$(date '+%Y-%m-%d %H:%M:%S')] Build completed successfully."
