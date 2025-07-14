@@ -10,7 +10,7 @@ export USER=root
 export PYTHONDONTWRITEBYTECODE=1
 export HF_HOME=/workspace/SongGeneration/
 export NCCL_HOME=/usr/local/tccl
-export PYTHONPATH="/workspace/repo/songgeneration/codeclm/tokenizer/:/workspace/repo/songgeneration:/workspace/repo/songgeneration/codeclm/tokenizer/Flow1dVAE/:/workspace/repo/songgeneration/codeclm/tokenizer/:$PYTHONPATH"
+export PYTHONPATH=/workspace/repo/songgeneration/codeclm/tokenizer/:/workspace/repo/songgeneration:/workspace/repo/songgeneration/codeclm/tokenizer/Flow1dVAE/:/workspace/repo/songgeneration/codeclm/tokenizer/:$PYTHONPATH
 
 echo "✅ Environment variables set."
 echo ""
