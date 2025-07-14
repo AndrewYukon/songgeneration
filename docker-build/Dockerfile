@@ -18,7 +18,6 @@
             libsndfile1 \
             ffmpeg \
             libsox-dev && \
-            tzdata && \
         rm -rf /var/lib/apt/lists/*
 
     # Set python3 default to 3.10
@@ -62,8 +61,9 @@
     FROM nvidia/cuda:12.4.1-cudnn-runtime-ubuntu22.04 AS runtime
     
     # Install Python + runtime libraries + git
+
     RUN apt-get update && \
-        apt-get install -y \
+        DEBIAN_FRONTEND=noninteractive apt-get install -y \
             python3.10 \
             python3.10-venv \
             python3.10-dev \
@@ -71,7 +71,7 @@
             git \
             libsndfile1 \
             ffmpeg \
-            libsox-dev && \
+            libsox-dev \
             tzdata && \
         rm -rf /var/lib/apt/lists/*
 
