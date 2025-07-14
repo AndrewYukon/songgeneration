@@ -97,7 +97,7 @@ conditioners:
     model: QwTokenizer
     QwTokenizer:
       token_path: third_party/Qwen2-7B
-      max_len: 300
+      max_len: 600
       add_token_list: ${load_yaml:conf/vocab.yaml}
   type_info:
     model: QwTextTokenizer
