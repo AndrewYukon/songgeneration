@@ -1,6 +1,6 @@
 # ================ Train Config ================ #
 lyric_processor:
-max_dur: 150
+max_dur: 300
 min_dur: 30
 prompt_len: 10
 pad_to_max: true
