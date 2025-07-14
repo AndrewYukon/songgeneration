@@ -21,11 +21,6 @@
             tzdata && \
         rm -rf /var/lib/apt/lists/*
 
-    # Set timezone
-    RUN ln -sf /usr/share/zoneinfo/America/Whitehorse /etc/localtime && \
-        echo "America/Whitehorse" > /etc/timezone && \
-        dpkg-reconfigure -f noninteractive tzdata
-
     # Set python3 default to 3.10
     RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.10 1
     
@@ -77,8 +72,14 @@
             libsndfile1 \
             ffmpeg \
             libsox-dev && \
+            tzdata && \
         rm -rf /var/lib/apt/lists/*
-    
+
+    # Set timezone
+    RUN ln -sf /usr/share/zoneinfo/America/Whitehorse /etc/localtime && \
+    echo "America/Whitehorse" > /etc/timezone && \
+    dpkg-reconfigure -f noninteractive tzdata
+
     # Set python3 default to 3.10
     RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.10 1
     
