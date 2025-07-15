@@ -18,7 +18,6 @@ nohup python3.10 generate_new.py \
 
 nohup python3.10 generate_new.py \
     ckpt \
-    ./sample/test.jsonl \
+    ./sample/lyrics.jsonl \
     ./output \
-    --temperature 0.7 \
     2>&1 | tee /workspace/SongGeneration/output/audios/generate.log &
