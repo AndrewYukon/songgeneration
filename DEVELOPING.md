@@ -18,6 +18,6 @@ nohup python3.10 generate_new.py \
 
 nohup python3.10 generate_new.py \
     ckpt \
-    ./sample/lyrics.jsonl \
+    ./sample/test5.jsonl \
     ./output \
     2>&1 | tee /workspace/SongGeneration/output/audios/generate.log &
