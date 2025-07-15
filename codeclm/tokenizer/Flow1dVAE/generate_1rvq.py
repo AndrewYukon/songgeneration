@@ -130,7 +130,7 @@ class Tango:
         return codes
 
     @torch.no_grad()
-    def code2sound(self, codes, prompt=None, duration=40, guidance_scale=1.5, num_steps=100, disable_progress=False):
+    def code2sound(self, codes, prompt=None, duration=40, guidance_scale=1.5, num_steps=20, disable_progress=False):
         codes = codes.to(self.device)
 
         min_samples = int(duration * 25) # 40ms per frame
@@ -248,7 +248,7 @@ class Tango:
         return input_audios.reshape(input_audios.shape[0], nchan, -1)/norm_value.unsqueeze(-1).unsqueeze(-1)
     
     @torch.no_grad()
-    def sound2sound(self, sound, prompt=None, steps=100, disable_progress=False):
+    def sound2sound(self, sound, prompt=None, steps=50, disable_progress=False):
         codes = self.sound2code(sound)
         # print(codes.shape)
         wave = self.code2sound(codes, prompt, guidance_scale=1.5, num_steps=steps, disable_progress=disable_progress)
@@ -256,7 +256,7 @@ class Tango:
         return wave
 
     @torch.no_grad()
-    def sound2sound_vae(self, sound, prompt=None, steps=100, disable_progress=False):
+    def sound2sound_vae(self, sound, prompt=None, steps=50, disable_progress=False):
         min_samples = int(40 * 25) # 40ms per frame
         hop_samples = min_samples // 4 * 3
         ovlp_samples = min_samples - hop_samples

@@ -110,7 +110,7 @@ class TextConditioner(BaseConditioner):
 class QwTokenizerConditioner(TextConditioner):
     def __init__(self, output_dim: int, 
                  token_path = "",
-                 max_len = 1024, # 300 
+                 max_len = 300, 
                  add_token_list=[]): #""
         from transformers import Qwen2Tokenizer
         self.text_tokenizer = Qwen2Tokenizer.from_pretrained(token_path)
@@ -188,7 +188,7 @@ class QwTokenizerConditioner(TextConditioner):
 class QwTextConditioner(TextConditioner):
     def __init__(self, output_dim: int,
                  token_path = "", 
-                 max_len = 1024): #"300"
+                 max_len = 300): #""
         
         from transformers import Qwen2Tokenizer
         self.text_tokenizer = Qwen2Tokenizer.from_pretrained(token_path)    

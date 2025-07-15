@@ -17,7 +17,6 @@ except:
     from modules.conv import Conv2dSubsampling
 
 
-
 class RVQDataset(Dataset):
     def __init__(
         self,
@@ -223,7 +222,6 @@ if __name__ == "__main__":
     result = {}
     from tqdm import tqdm
     from tensorboardX import SummaryWriter 
-    #from torch.utils.tensorboard import SummaryWriter
     writer = SummaryWriter()
     from collections import defaultdict
     import os
